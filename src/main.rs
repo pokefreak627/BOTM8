@@ -11,7 +11,6 @@ use secrets::*;
 use serenity::client::bridge::gateway::GatewayIntents;
 use serenity::{
     async_trait,
-
     framework::{
         standard::{
             macros::{command, group},
@@ -50,7 +49,6 @@ const MESSAGES: &[&str] = include!("../.messages");
     remove_all_commands,
     calm,
     test,
-    
     add_birthday,
     help,
     sigh,
@@ -58,7 +56,6 @@ const MESSAGES: &[&str] = include!("../.messages");
     wave,
     cry,
     laugh,
-
     plug,
     yox,
     psy,
@@ -94,20 +91,15 @@ impl EventHandler for Handler {
         let mut d = DateTuple::today();
         let message = msg.content.trim();
         if msg.author.id != UserId(844801500790390791) {
-        for prefix in PREFIXES.iter() {
-            if message.starts_with(prefix) {
-                if let Some(content) = ctx
-                    .data
-                    .read()
-                    .await
-                    .get::<Command>()
-                    .unwrap()
-                    .inner
-                    .get(&message[prefix.len()..])
-                {
-                    if let Err(e) = msg.channel_id.say(&ctx.http, content).await {
-                        println!("{}", e);
-                    }
+            for prefix in PREFIXES.iter() {
+                if message.starts_with(prefix) {
+                    let commands: Commands =
+                        ron::de::from_bytes(&std::fs::read("../commands.ron").unwrap()).unwrap();
+
+                    if let Some(content) = commands.inner.get(&message[prefix.len()..]) {
+                        if let Err(e) = msg.channel_id.say(&ctx.http, content).await {
+                            println!("{}", e);
+                        }
                     }
                 }
             }
@@ -224,23 +216,28 @@ async fn add_command(ctx: &Context, msg: &Message) -> CommandResult {
             if let Some((_, content)) = msg.content.split_once(' ') {
                 if let Some(name) = read_next(content).await {
                     if let Some(string) = read_next(&content[name.len()..].trim_start()).await {
-                     
-                                    let name = name.to_string();
-                                    let string = string.to_string();
+                        let name = name.to_string();
+                        let string = string.to_string();
 
-                                    commands.inner.insert(name, string);
+                        let file = OpenOptions::new()
+                            .read(true)
+                            .create(true)
+                            .open("commands.ron")
+                            .unwrap();
 
-                                    if let Err(e) =
-                                        msg.channel_id.say(&ctx.http, "Command added").await
-                                    {
-                                        println!("{}", e)
-                                    }
-                                }
-                            }
+                        let mut commands: Commands = ron::de::from_reader(&file).unwrap();
+
+                        commands.inner.insert(name, string);
+
+                        ron::ser::to_writer(file, &commands).unwrap();
+                        if let Err(e) = msg.channel_id.say(&ctx.http, "Command added").await {
+                            println!("{}", e)
                         }
                     }
-                
-            } else {
+                }
+            }
+        }
+    } else {
         if let Err(e) = msg
             .channel_id
             .say(
@@ -282,8 +279,7 @@ async fn read_next(input: &str) -> Option<&str> {
 
 #[tokio::main]
 async fn main() {
-    
-    let token =include_str!("../.token");
+    let token = include_str!("../.token");
     let framework = StandardFramework::new()
         .configure(|p| p.allow_dm(false).prefixes(PREFIXES))
         .group(&BIRTHDAY_GROUP);
@@ -314,8 +310,6 @@ async fn main() {
         let mut date = DateTuple::today();
         date.subtract_days(1);
         data.insert::<Checked>(date);
-
-        data.insert::<Command>(Commands::default());
 
         data.insert::<Killer>(client.shard_manager.clone());
     }

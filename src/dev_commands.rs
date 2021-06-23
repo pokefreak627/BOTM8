@@ -1,4 +1,5 @@
 use date_time::date_tuple::DateTuple;
+use serde::{Deserialize, Serialize};
 use serenity::{
     client::bridge::gateway::ShardManager,
     framework::standard::{macros::command, CommandResult},
@@ -12,7 +13,7 @@ impl TypeMapKey for Killer {
     type Value = Arc<Mutex<ShardManager>>;
 }
 
-#[derive(Default)]
+#[derive(Default, Deserialize, Serialize)]
 pub struct Commands {
     pub inner: HashMap<String, String>,
 }
