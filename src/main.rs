@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs::OpenOptions, str::FromStr, sync::Arc};
+use std::{collections::HashMap, fs::OpenOptions, str::FromStr};
 
 use date_time::date_tuple::DateTuple;
 
@@ -11,7 +11,7 @@ use secrets::*;
 use serenity::client::bridge::gateway::GatewayIntents;
 use serenity::{
     async_trait,
-    client::bridge::gateway::ShardManager,
+
     framework::{
         standard::{
             macros::{command, group},
@@ -44,7 +44,6 @@ impl TypeMapKey for Date {
 }
 
 const MESSAGES: &[&str] = include!("../.messages");
-
 #[group]
 #[commands(
     add_command,
@@ -69,11 +68,7 @@ const MESSAGES: &[&str] = include!("../.messages");
     hagrid
 )]
 struct Birthday;
-struct Killer;
 
-impl TypeMapKey for Killer {
-    type Value = Arc<Mutex<ShardManager>>;
-}
 struct Checked;
 
 impl TypeMapKey for Checked {
@@ -98,6 +93,7 @@ impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
         let mut d = DateTuple::today();
         let message = msg.content.trim();
+        if msg.author.id != UserId(844801500790390791) {
         for prefix in PREFIXES.iter() {
             if message.starts_with(prefix) {
                 if let Some(content) = ctx
@@ -111,6 +107,7 @@ impl EventHandler for Handler {
                 {
                     if let Err(e) = msg.channel_id.say(&ctx.http, content).await {
                         println!("{}", e);
+                    }
                     }
                 }
             }
@@ -227,11 +224,7 @@ async fn add_command(ctx: &Context, msg: &Message) -> CommandResult {
             if let Some((_, content)) = msg.content.split_once(' ') {
                 if let Some(name) = read_next(content).await {
                     if let Some(string) = read_next(&content[name.len()..].trim_start()).await {
-                        for prefix in PREFIXES.iter() {
-                            if string.starts_with(prefix) {
-                                if let Err(e) = msg.channel_id.say(&ctx.http, "Nice try").await {
-                                    println!("{}", e)
-                                } else {
+                     
                                     let name = name.to_string();
                                     let string = string.to_string();
 
@@ -246,10 +239,8 @@ async fn add_command(ctx: &Context, msg: &Message) -> CommandResult {
                             }
                         }
                     }
-                }
-            }
-        }
-    } else {
+                
+            } else {
         if let Err(e) = msg
             .channel_id
             .say(
@@ -264,7 +255,6 @@ async fn add_command(ctx: &Context, msg: &Message) -> CommandResult {
 
     Ok(())
 }
-
 async fn read_next(input: &str) -> Option<&str> {
     match input.chars().next() {
         Some(t) => {
@@ -292,8 +282,8 @@ async fn read_next(input: &str) -> Option<&str> {
 
 #[tokio::main]
 async fn main() {
-    let token = "../.token";
-
+    
+    let token =include_str!("../.token");
     let framework = StandardFramework::new()
         .configure(|p| p.allow_dm(false).prefixes(PREFIXES))
         .group(&BIRTHDAY_GROUP);
