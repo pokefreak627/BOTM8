@@ -46,7 +46,6 @@ const MESSAGES: &[&str] = include!("../.messages");
 #[group]
 #[commands(
     add_command,
-    remove_all_commands,
     calm,
     test,
     add_birthday,
