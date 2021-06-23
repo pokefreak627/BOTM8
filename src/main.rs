@@ -93,7 +93,8 @@ impl EventHandler for Handler {
             for prefix in PREFIXES.iter() {
                 if message.starts_with(prefix) {
                     let commands: Commands =
-                        ron::de::from_bytes(&std::fs::read("../commands.ron").unwrap()).unwrap();
+                        ron::de::from_bytes(&std::fs::read("commands.ron").unwrap())
+                            .unwrap_or_default();
 
                     if let Some(content) = commands.inner.get(&message[prefix.len()..]) {
                         if let Err(e) = msg.channel_id.say(&ctx.http, content).await {
@@ -207,31 +208,28 @@ async fn add_command(ctx: &Context, msg: &Message) -> CommandResult {
         .await
         .unwrap_or(false)
     {
-        let mut data = ctx.data.write().await;
+        if let Some((_, content)) = msg.content.split_once(' ') {
+            if let Some(name) = read_next(content).await {
+                if let Some(string) = read_next(&content[name.len()..].trim_start()).await {
+                    let name = name.to_string();
+                    let string = string.to_string();
 
-        let commands = data.get_mut::<Command>().unwrap();
+                    println!("{}", string);
 
-        if commands.inner.len() < 10 {
-            if let Some((_, content)) = msg.content.split_once(' ') {
-                if let Some(name) = read_next(content).await {
-                    if let Some(string) = read_next(&content[name.len()..].trim_start()).await {
-                        let name = name.to_string();
-                        let string = string.to_string();
+                    let file = OpenOptions::new()
+                        .write(true)
+                        .create(true)
+                        .open("commands.ron")
+                        .unwrap();
 
-                        let file = OpenOptions::new()
-                            .read(true)
-                            .create(true)
-                            .open("commands.ron")
-                            .unwrap();
+                    let mut commands: Commands = ron::de::from_reader(&file).unwrap_or_default();
 
-                        let mut commands: Commands = ron::de::from_reader(&file).unwrap();
+                    commands.inner.insert(name, string);
 
-                        commands.inner.insert(name, string);
+                    ron::ser::to_writer(file, &commands).unwrap();
 
-                        ron::ser::to_writer(file, &commands).unwrap();
-                        if let Err(e) = msg.channel_id.say(&ctx.http, "Command added").await {
-                            println!("{}", e)
-                        }
+                    if let Err(e) = msg.channel_id.say(&ctx.http, "Command added").await {
+                        println!("{}", e)
                     }
                 }
             }

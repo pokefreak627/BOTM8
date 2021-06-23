@@ -30,42 +30,6 @@ impl TypeMapKey for Checked {
 }
 
 #[command]
-async fn remove_all_commands(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild_id = msg.guild_id.unwrap();
-
-    if msg
-        .author
-        .has_role(&ctx.http, guild_id, RoleId(850040055312678963))
-        .await
-        .unwrap_or(false)
-    {
-        ctx.data
-            .write()
-            .await
-            .get_mut::<Command>()
-            .unwrap()
-            .inner
-            .clear();
-
-        msg.channel_id
-            .say(&ctx.http, "Commands removed!")
-            .await
-            .unwrap();
-    } else {
-        if let Err(e) = msg
-            .channel_id
-            .say(
-                &ctx.http,
-                "Sorry, you don't have a high enough permission to use this. If I am acting up ping poke and they will help calm me down",
-            )
-            .await
-        {
-            println!("{}", e)
-        }
-    }
-    Ok(())
-}
-#[command]
 async fn test(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
     if msg
