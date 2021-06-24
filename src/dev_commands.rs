@@ -28,7 +28,7 @@ pub struct Checked;
 impl TypeMapKey for Checked {
     type Value = DateTuple;
 }
-
+//standard ping command just here to check the bot is working. ironically this command has failed me the most
 #[command]
 async fn test(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
@@ -53,6 +53,7 @@ async fn test(ctx: &Context, msg: &Message) -> CommandResult {
     }
     Ok(())
 }
+//a kill switch. i just didnt have the heart for someone to be able to kill my bot. fuck you i get attached to things easily ok? dont judge me...
 #[command]
 async fn calm(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
@@ -72,6 +73,7 @@ async fn calm(ctx: &Context, msg: &Message) -> CommandResult {
             )
             .await
             .unwrap();
+            //simple terms this just clones the client the bot is in so it just goes "AAAAAAAA" and melts
         let mut data = ctx.data.write().await;
         let shard_manager = data.get_mut::<Killer>().unwrap();
 

@@ -1,3 +1,4 @@
+//all this use stuff is just libraries thatre in the rust language? that this can use to have extra keywords predefined
 use std::{collections::HashMap, fs::OpenOptions, str::FromStr};
 
 use date_time::date_tuple::DateTuple;
@@ -27,7 +28,7 @@ use serenity::{
 mod dev_commands;
 mod emotes;
 mod secrets;
-//damn mobile users
+//damn mobile users. this just defines prefixes
 const PREFIXES: &[&str] = &["j/", "J/"];
 
 #[derive(Default, Deserialize, Serialize)]
@@ -41,7 +42,7 @@ struct Date;
 impl TypeMapKey for Date {
     type Value = Birthdays;
 }
-
+//some private messages for things that are saved as a "slice" kinda like a small array
 const MESSAGES: &[&str] = include!("../.messages");
 #[group]
 #[commands(
@@ -72,8 +73,10 @@ impl TypeMapKey for Checked {
 }
 struct Handler;
 
+//this is how events are handled, basically when something happens in the server, do the thing
 #[async_trait]
 impl EventHandler for Handler {
+    //when someone joins, give them the M8 role
     async fn guild_member_addition(
         &self,
         ctx: Context,
@@ -85,7 +88,7 @@ impl EventHandler for Handler {
             .await
             .unwrap();
     }
-
+//when a message is sent check if it starts with a prefix, if it does then see what comes after and see if it matches any of the commands, then do what that command says. a safety net is in place here to make sure the bot only sees the prefix if it isnt the bot seeing it
     async fn message(&self, ctx: Context, msg: Message) {
         let mut d = DateTuple::today();
         let message = msg.content.trim();
@@ -109,7 +112,7 @@ impl EventHandler for Handler {
 
             last_checked != d
         };
-
+//this just handles the birthday stuff like checking what day it is and seeing if it matches any dates in birthdays.ron
         if should_update {
             *ctx.data.write().await.get_mut::<Checked>().unwrap() = d;
 
@@ -121,7 +124,7 @@ impl EventHandler for Handler {
                         if let Err(e) = match user {
                             97304001430708224 => channel.say(&ctx.http, MESSAGES[0]).await,
                             105381778633584640 => channel.say(&ctx.http, MESSAGES[1]).await,
-                            _ => channel.say(&ctx.http, "Happy birthday!!!!!!!!!!").await,
+                            _ => channel.say(&ctx.http, "Happy birthday, i hope you have a lovely day").await,
                         } {
                             println!("Error {} whilst sending birthday message", e);
                         }
@@ -131,7 +134,7 @@ impl EventHandler for Handler {
         }
     }
 }
-
+//the help command that taught me how to use embeds, more annoying than i thought itd be to set up so thats why its very bare bones
 #[command]
 async fn help(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.send_message(&ctx.http, |c| {
@@ -153,6 +156,7 @@ async fn help(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+//add birthday command, it makes sure theres no years so it just checks the days so when its that day/month etc itll be all good and send every year
 #[command]
 async fn add_birthday(ctx: &Context, msg: &Message) -> CommandResult {
     let mut data = ctx.data.write().await;
@@ -198,6 +202,7 @@ async fn add_birthday(ctx: &Context, msg: &Message) -> CommandResult {
 
     Ok(())
 }
+//I HATE YOU PSY WHY DID YOU SUGGEST THIS COMMAND. THIS ONE COMMAND BROKE EVERY SINGLE TIME SOMETHING CHANGED AND EVEN THEN IT TOOK WAY TOO LONG FOR IT TO FUNCTION INITIALLY
 #[command]
 async fn add_command(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
@@ -249,6 +254,7 @@ async fn add_command(ctx: &Context, msg: &Message) -> CommandResult {
 
     Ok(())
 }
+//ive actually forgotten what this does i just know its important
 async fn read_next(input: &str) -> Option<&str> {
     match input.chars().next() {
         Some(t) => {
@@ -273,7 +279,7 @@ async fn read_next(input: &str) -> Option<&str> {
         None => None,
     }
 }
-
+//this is the passive existence of the bot and what gets sent to discord and how it recieves stuff from discord ig
 #[tokio::main]
 async fn main() {
     let token = include_str!("../.token");

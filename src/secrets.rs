@@ -4,7 +4,7 @@ use serenity::{
     model::channel::Message,
     prelude::*,
 };
-
+//all these commands are just standard ping commands but theyre the hidden commands so theyre kinda cool?
 #[command]
 async fn totsu(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.say(&ctx.http, "https://tenor.com/view/guilty-gear-guilty-gear-strive-may-totsugeki-dolphin-gif-22007409").await.unwrap();
