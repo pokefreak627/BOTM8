@@ -15,7 +15,6 @@ async fn sigh(ctx: &Context, msg: &Message) -> CommandResult {
         .unwrap();
     Ok(())
 }
-
 #[command]
 async fn cry(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id

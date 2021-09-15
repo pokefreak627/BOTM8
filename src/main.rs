@@ -3,12 +3,11 @@ use std::{collections::HashMap, fs::OpenOptions, str::FromStr};
 
 use date_time::date_tuple::DateTuple;
 
-use serde::{Deserialize, Serialize};
-use serenity::builder::CreateEmbed;
-
 use dev_commands::*;
 use emotes::*;
 use secrets::*;
+use serde::{Deserialize, Serialize};
+use serenity::builder::CreateEmbed;
 use serenity::client::bridge::gateway::GatewayIntents;
 use serenity::{
     async_trait,
@@ -19,12 +18,10 @@ use serenity::{
         },
         StandardFramework,
     },
-    model::{
-        channel::Message,
-        id::{RoleId, UserId},
-    },
+    model::{channel::Message, id::UserId},
     prelude::*,
 };
+use songbird::SerenityInit;
 mod dev_commands;
 mod emotes;
 mod secrets;
@@ -46,7 +43,7 @@ impl TypeMapKey for Date {
 const MESSAGES: &[&str] = include!("../.messages");
 #[group]
 #[commands(
-    add_command,
+    //add_command,
     calm,
     test,
     add_birthday,
@@ -62,7 +59,9 @@ const MESSAGES: &[&str] = include!("../.messages");
     totsu,
     chito,
     echo,
-    hagrid
+    hagrid,
+    lakso,
+    psyborg
 )]
 struct Birthday;
 
@@ -88,7 +87,7 @@ impl EventHandler for Handler {
             .await
             .unwrap();
     }
-//when a message is sent check if it starts with a prefix, if it does then see what comes after and see if it matches any of the commands, then do what that command says. a safety net is in place here to make sure the bot only sees the prefix if it isnt the bot seeing it
+    //when a message is sent check if it starts with a prefix, if it does then see what comes after and see if it matches any of the commands, then do what that command says. a safety net is in place here to make sure the bot only sees the prefix if it isnt the bot seeing it
     async fn message(&self, ctx: Context, msg: Message) {
         let mut d = DateTuple::today();
         let message = msg.content.trim();
@@ -112,7 +111,7 @@ impl EventHandler for Handler {
 
             last_checked != d
         };
-//this just handles the birthday stuff like checking what day it is and seeing if it matches any dates in birthdays.ron
+        //this just handles the birthday stuff like checking what day it is and seeing if it matches any dates in birthdays.ron
         if should_update {
             *ctx.data.write().await.get_mut::<Checked>().unwrap() = d;
 
@@ -124,6 +123,7 @@ impl EventHandler for Handler {
                         if let Err(e) = match user {
                             97304001430708224 => channel.say(&ctx.http, MESSAGES[0]).await,
                             105381778633584640 => channel.say(&ctx.http, MESSAGES[1]).await,
+                            173847223912759296 => channel.say(&ctx.http, " ").await,
                             _ => channel.say(&ctx.http, "Happy birthday, i hope you have a lovely day").await,
                         } {
                             println!("Error {} whilst sending birthday message", e);
@@ -148,7 +148,7 @@ async fn help(ctx: &Context, msg: &Message) -> CommandResult {
         \n**UTILITY**
         \n`help` To display this  message again, 
         \n`add_birthday` type ''j/add_birthday'' followed by your birthday in the format yyyy-mm-dd. The hyphens are needed, 
-        \n`add_command` Make your own command, j/add_command [command name] ''what you want the command to say''. This is only available to patrons so if you want this ability and many other perks go check it out [here](https://www.patreon.com/JM8/posts), 
+        \n`add_command` [COMING SOON], 
         \nOh and maybe theres a few hidden *commands* ;)");
         c.set_embed(embed.clone())
     }).await.unwrap();
@@ -203,7 +203,7 @@ async fn add_birthday(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 //I HATE YOU PSY WHY DID YOU SUGGEST THIS COMMAND. THIS ONE COMMAND BROKE EVERY SINGLE TIME SOMETHING CHANGED AND EVEN THEN IT TOOK WAY TOO LONG FOR IT TO FUNCTION INITIALLY
-#[command]
+/*#[command]
 async fn add_command(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
 
@@ -220,12 +220,22 @@ async fn add_command(ctx: &Context, msg: &Message) -> CommandResult {
                     let string = string.to_string();
 
                     println!("{}", string);
+                    let id = msg.author.id.0;
+                    let entry = command.inner.entry(Command);
+
+                    entry.and_modify(|ids| {
+                            if !ids.contains(&id) {
+                                ids.push(id)
+                          }
+                        })
+                        .or_insert_with(|| vec![id]);
 
                     let file = OpenOptions::new()
                         .write(true)
                         .create(true)
                         .open("commands.ron")
                         .unwrap();
+                        OpenOptions::new().write(true).truncate(true).create(true);
 
                     let mut commands: Commands = ron::de::from_reader(&file).unwrap_or_default();
 
@@ -253,7 +263,7 @@ async fn add_command(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     Ok(())
-}
+}  */
 //ive actually forgotten what this does i just know its important
 async fn read_next(input: &str) -> Option<&str> {
     match input.chars().next() {
@@ -292,6 +302,7 @@ async fn main() {
     let mut client = Client::builder(&token)
         .event_handler(Handler)
         .framework(framework)
+        .register_songbird()
         .intents(intents)
         .await
         .expect("Err creating client");

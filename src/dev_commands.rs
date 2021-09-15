@@ -57,7 +57,6 @@ async fn test(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 async fn calm(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_id = msg.guild_id.unwrap();
-
     if msg
         .author
         .has_role(&ctx.http, guild_id, RoleId(850040055312678963))
@@ -73,7 +72,7 @@ async fn calm(ctx: &Context, msg: &Message) -> CommandResult {
             )
             .await
             .unwrap();
-            //simple terms this just clones the client the bot is in so it just goes "AAAAAAAA" and melts
+        //simple terms this just clones the client the bot is in so it just goes "AAAAAAAA" and melts
         let mut data = ctx.data.write().await;
         let shard_manager = data.get_mut::<Killer>().unwrap();
 
